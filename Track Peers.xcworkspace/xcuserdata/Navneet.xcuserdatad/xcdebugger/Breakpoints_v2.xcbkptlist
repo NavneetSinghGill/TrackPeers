@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bucket
+   type = "0"
+   version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Track Peers/ViewController.swift"
+            timestampString = "529586860.361012"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "67"
+<<<<<<< HEAD
+            endingLineNumber = "67">
+=======
+            endingLineNumber = "67"
+            landmarkName = "mapView(_:didTapAt:)"
+            landmarkType = "7">
+>>>>>>> 4b8cb7a... Add customised marker on google map with rotation management on tapping
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
+</Bucket>
