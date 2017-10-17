@@ -14,7 +14,7 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     var mapView: GMSMapView!
     var logiTextField: UITextField!
     var latiTextField: UITextField!
-    var currentMarker: GMSMarker?
+    var currentMarker: UserMarker? // SubClass of GMSMarker
     var previousCoordinate: CLLocationCoordinate2D?
     var currentCoordinate: CLLocationCoordinate2D?
     var locations: [CLLocationCoordinate2D] = []
@@ -41,7 +41,7 @@ class ViewController: UIViewController, GMSMapViewDelegate {
         view = mapView
         
         // Creates a marker in the center of the map.
-        currentMarker = GMSMarker()
+        currentMarker = UserMarker()
         let image = UIImage(named: "car")
         let markerImageView = UIImageView(image: image)
         markerImageView.bounds = CGRect(x: 0, y: 0, width: 30, height: 30)
@@ -83,7 +83,8 @@ class ViewController: UIViewController, GMSMapViewDelegate {
         currentCoordinate = coordinate
         
         UIView.animate(withDuration: 0.3) {
-            self.currentMarker?.iconView?.transform = self.getTransformRotationAngleWhenMoved(from: self.previousCoordinate!, to: self.currentCoordinate!)
+            self.currentMarker?.updateBaseAngleWith(baseAngle: self.getRadiansOfMarkerRotationWhenMoved(from: self.previousCoordinate!, to: self.currentCoordinate!))
+            self.currentMarker?.updateBearingWith(bearing: self.bearingAngleRadians)
             self.currentMarker?.position = coordinate
         }
         print("coordinate: \(coordinate)")
@@ -101,15 +102,16 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     
     func mapView(_ mapView: GMSMapView, didChange position: GMSCameraPosition) {
         bearingAngleRadians = CGFloat((360 - position.bearing))/(180/CGFloat.pi)
+        self.currentMarker?.updateBearingWith(bearing: bearingAngleRadians)
         print("Will change position: \(position)")
     }
     
-    func getTransformRotationAngleWhenMoved(from startingPoint: CLLocationCoordinate2D, to endingPoint: CLLocationCoordinate2D) -> CGAffineTransform {
+    func getRadiansOfMarkerRotationWhenMoved(from startingPoint: CLLocationCoordinate2D, to endingPoint: CLLocationCoordinate2D) -> CGFloat {
         let distanceDifferences = CGPoint(x: endingPoint.longitude - startingPoint.longitude, y: endingPoint.latitude - startingPoint.latitude)
         
         let radianAngle: CGFloat = CGFloat(-atan2f(Float(Double(distanceDifferences.y)), Float(Double(distanceDifferences.x))))
         print("radian angle: \(radianAngle), bearing: \(bearingAngleRadians)")
-        return CGAffineTransform(rotationAngle: radianAngle + bearingAngleRadians)
+        return radianAngle
     }
     
     func makeMarkerMove() {
