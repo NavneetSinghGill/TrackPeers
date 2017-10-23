@@ -11,24 +11,24 @@ import GoogleMaps
 
 class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDelegate {
     
-    var myLatestLocation: CLLocation?
+    var locationManager = CLLocationManager()
     
     @IBOutlet weak var mapView: GMSMapView!
     var camera: GMSCameraPosition?
-    var logiTextField: UITextField!
-    var latiTextField: UITextField!
+    var bearingAngleRadians: CGFloat = 0 //Map rotation angle
+    
+    //User specific
     var currentMarker: UserMarker? // SubClass of GMSMarker
     var previousCoordinate: CLLocationCoordinate2D?
     var currentCoordinate: CLLocationCoordinate2D?
-    var locations: [CLLocationCoordinate2D] = []
-    var bearingAngleRadians: CGFloat = 0
-    
-    var locationManager = CLLocationManager()
+    var myLatestLocation: CLLocation?
+//    var locations: [CLLocationCoordinate2D] = [] //User it for store users location
     var currentUserPath = GMSMutablePath()
     var currentUserPolyline: GMSPolyline?
-    var didTap: CLLocationCoordinate2D?
-    
+
+    //Friends specific
     var friendsMarkers: [UserMarker] = []
+    var selectedMarker: UserMarker?
     
     //MARK: -
     
@@ -37,12 +37,6 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         // Do any additional setup after loading the view, typically from a nib.
 //
 //    }
-//
-//    override func viewDidAppear(_ animated: Bool) {
-//        super.viewDidAppear(animated)
-//
-//    }
-//
 //    override func loadView() {
         locationManager.delegate = self
         locationManager.requestWhenInUseAuthorization()
@@ -57,7 +51,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         //        mapView.isTrafficEnabled = true
 //        view = mapView
         self.mapView.isMyLocationEnabled = true
-        
+//        self.mapView.mapType = .satellite
         // Creates a marker in the center of the map.
         currentMarker = UserMarker()
         let image = UIImage(named: "car")
@@ -101,7 +95,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         addMarkers(of: Friend.friendsWithFakeLocations(),shouldClearOldData: true)
     }
     
-    //MARK: GMS delegate methods
+    //MARK: - GMS delegate methods
     
     func mapView(_ mapView: GMSMapView, didTapAt coordinate: CLLocationCoordinate2D) {
 
@@ -129,6 +123,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     }
     
     func mapView(_ mapView: GMSMapView, didTap marker: GMSMarker) -> Bool {
+        showAlertActions(for: marker as? UserMarker)
         
         return true
     }
@@ -141,6 +136,62 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         bearingAngleRadians = CGFloat((360 - position.bearing))/(180/CGFloat.pi)
         self.currentMarker?.updateBearingWith(bearing: bearingAngleRadians)
         print("Will change position: \(position)")
+    }
+    
+    //MARK: MAPKit methods
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        print(locations)
+        
+        //TODO: This will be used in real for updating the true location
+        //        currentUserPath.add((locations.last?.coordinate)!)
+        //        polyline = GMSPolyline(path: currentUserPath)
+        //        polyline?.strokeWidth = 2
+        //        polyline?.strokeColor = loggedInUserPathColor
+        //        polyline?.map = mapView
+        
+        myLatestLocation = locations.last
+        #if (arch(i386) || arch(x86_64)) && (os(iOS) || os(watchOS) || os(tvOS)) //Simulator
+            camera = GMSCameraPosition.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
+        #else
+            camera = GMSCameraPosition.camera(withLatitude: (myLatestLocation?.coordinate.latitude)!, longitude: (myLatestLocation?.coordinate.longitude)!, zoom: 15.0)
+        #endif
+        mapView.camera = camera!
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print(error)
+    }
+    
+    //MARK: - Custom methods
+    
+    func showAlertActions(for marker: UserMarker?) {
+        let alertController = UIAlertController(title: "Actions", message: nil, preferredStyle: .actionSheet)
+        
+        let showOneDayRoute = UIAlertAction(title: "Show one day route", style: .default) { (action) in
+            self.resetRouteFor(marker: self.selectedMarker)
+            self.selectedMarker = marker
+            
+        }
+        let follow = UIAlertAction(title: "Follow", style: .default) { (action) in
+            self.resetRouteFor(marker: self.selectedMarker)
+            self.selectedMarker = marker
+            self.followSelectedFriendsMarker()
+        }
+        let showRoutine = UIAlertAction(title: "Show routine", style: .default) { (action) in
+            self.resetRouteFor(marker: self.selectedMarker)
+            self.selectedMarker = marker
+            
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alertController.addAction(showRoutine)
+        alertController.addAction(showOneDayRoute)
+        alertController.addAction(follow)
+        alertController.addAction(cancelAction)
+        
+        self.present(alertController, animated: true, completion: nil)
     }
     
     func getRadiansOfMarkerRotationWhenMoved(from startingPoint: CLLocationCoordinate2D, to endingPoint: CLLocationCoordinate2D) -> CGFloat {
@@ -157,18 +208,17 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     //        }
     //    }
     
-    func drawRoute() {
-        let originLocation2D = CLLocationCoordinate2D(latitude: 22.741162791314817, longitude: 75.892375521361828)
-        let destinationLocation2D = CLLocationCoordinate2D(latitude: 22.752719409058209, longitude: 75.888148359954357)
-        
-        let originLocation = CLLocation(latitude: originLocation2D.latitude, longitude: originLocation2D.longitude)
-        let dsetinationLocation = CLLocation(latitude: destinationLocation2D.latitude, longitude: destinationLocation2D.longitude)
-        
+    func drawRoute(fromLocation: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: 22.741162791314817, longitude: 75.892375521361828), toLocation: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: 22.752719409058209, longitude: 75.888148359954357)) {
+    
+        let originLocation: CLLocation = CLLocation(latitude: fromLocation.latitude, longitude: fromLocation.longitude)
+        let destinationLocation: CLLocation = CLLocation(latitude: toLocation.latitude, longitude: toLocation.longitude)
+    
         DispatchQueue.main.async {
-            self.fetchPolylineWithOrigin(origin: originLocation, destination: dsetinationLocation) { (currentUserPolyline) in
-                if currentUserPolyline != nil {
+            self.fetchPolylineWithOrigin(origin: originLocation, destination: destinationLocation) { (toUserPolyline) in
+                if toUserPolyline != nil {
                     DispatchQueue.main.async {
-                        currentUserPolyline?.map = self.mapView
+                        toUserPolyline?.map = self.mapView
+                        self.selectedMarker?.followPolyline = toUserPolyline
                     }
                 }
             }
@@ -221,34 +271,16 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         task.resume()
     }
     
-    //    - (void)fetchPolylineWithOrigin:(CLLocation *)origin destination:(CLLocation *)destination completionHandler:(void (^)(GMSPolyline *))completionHandler
-    
-    //MARK: MAPKit methods
-    
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        print(locations)
-        
-        //TODO: This will be used in real for updating the true location
-        //        currentUserPath.add((locations.last?.coordinate)!)
-        //        polyline = GMSPolyline(path: currentUserPath)
-        //        polyline?.strokeWidth = 2
-        //        polyline?.strokeColor = loggedInUserPathColor
-        //        polyline?.map = mapView
-        
-        myLatestLocation = locations.last
-        #if (arch(i386) || arch(x86_64)) && (os(iOS) || os(watchOS) || os(tvOS)) //Simulator
-          camera = GMSCameraPosition.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
-        #else
-            camera = GMSCameraPosition.camera(withLatitude: (myLatestLocation?.coordinate.latitude)!, longitude: (myLatestLocation?.coordinate.longitude)!, zoom: 15.0)
-        #endif
-        mapView.camera = camera!
+    func followSelectedFriendsMarker() {
+        drawRoute(fromLocation: CLLocationCoordinate2D(latitude: (currentCoordinate?.latitude)!, longitude: (currentCoordinate?.longitude)!), toLocation: CLLocationCoordinate2D(latitude: (selectedMarker?.position.latitude)!, longitude: (selectedMarker?.position.longitude)!))
     }
     
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print(error)
+    func resetRouteFor(marker: UserMarker?) {
+        if marker != nil {
+            marker?.followPolyline?.map = nil
+            marker?.followPolyline = nil
+        }
     }
-    
-    //MARK:
     
     func addMarkers(of friends:[Friend], shouldClearOldData: Bool) {
         if shouldClearOldData {
@@ -262,10 +294,11 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
             let friendMarker: UserMarker = UserMarker()
             friendMarker.iconView = markerImageView
             friendMarker.position = friend.lastLocation!
-//            friendMarker.title = "Indore"
-//            friendMarker.snippet = "India"
+            friendMarker.title = "Indore"
+            friendMarker.snippet = "India"
             friendMarker.map = mapView
             friendMarker.iconView?.bounds = CGRect(x: 0, y: (friendMarker.iconView?.bounds.size.height)!/2, width: (friendMarker.iconView?.bounds.size.width)!, height: (friendMarker.iconView?.bounds.size.height)!)
+            friendMarker.friend = friend
             
             friendsMarkers.append(friendMarker)
         }

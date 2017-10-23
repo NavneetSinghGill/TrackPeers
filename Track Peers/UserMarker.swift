@@ -13,6 +13,8 @@ class UserMarker: GMSMarker {
     
     var radianAngle: CGFloat = 0
     var bearingAngle: CGFloat = 0
+    var friend: Friend?
+    var followPolyline: GMSPolyline?
     
     func updateBearingWith(bearing: CGFloat) {
         bearingAngle = bearing
