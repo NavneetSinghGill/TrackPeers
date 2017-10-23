@@ -97,7 +97,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         currentUserPolyline?.strokeColor = loggedInUserPathColor
         currentUserPolyline?.map = mapView
         
-        addMarkers(of: Friend.friendsWithFakeLocations())
+        addMarkers(of: Friend.friendsWithFakeLocations(),shouldClearOldData: true)
     }
     
     //MARK: GMS delegate methods
@@ -128,9 +128,8 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     }
     
     func mapView(_ mapView: GMSMapView, didTap marker: GMSMarker) -> Bool {
-        remove(markers: [marker as! UserMarker])
         
-        return false
+        return true
     }
     
     func mapView(_ mapView: GMSMapView, willMove gesture: Bool) {
@@ -236,8 +235,11 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         //        polyline?.map = mapView
         
         myLatestLocation = locations.last
-        camera = GMSCameraPosition.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
-//        camera = GMSCameraPosition.camera(withLatitude: (myLatestLocation?.coordinate.latitude)!, longitude: (myLatestLocation?.coordinate.longitude)!, zoom: 15.0)
+        #if (arch(i386) || arch(x86_64)) && (os(iOS) || os(watchOS) || os(tvOS)) //Simulator
+          camera = GMSCameraPosition.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
+        #else
+            camera = GMSCameraPosition.camera(withLatitude: (myLatestLocation?.coordinate.latitude)!, longitude: (myLatestLocation?.coordinate.longitude)!, zoom: 15.0)
+        #endif
         mapView.camera = camera!
     }
     
@@ -247,7 +249,11 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     
     //MARK:
     
-    func addMarkers(of friends:[Friend]) {
+    func addMarkers(of friends:[Friend], shouldClearOldData: Bool) {
+        if shouldClearOldData {
+            remove(markers: self.friendsMarkers)
+        }
+        
         for friend in friends {
             let image = UIImage(named: "friendMarker")
             let markerImageView = UIImageView(image: image)
