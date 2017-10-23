@@ -11,7 +11,10 @@ import GoogleMaps
 
 class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDelegate {
     
+    var myLatestLocation: CLLocation?
+    
     var mapView: GMSMapView!
+    var camera: GMSCameraPosition?
     var logiTextField: UITextField!
     var latiTextField: UITextField!
     var currentMarker: UserMarker? // SubClass of GMSMarker
@@ -25,6 +28,9 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     var currentUserPolyline: GMSPolyline?
     var didTap: CLLocationCoordinate2D?
     
+    var friendsMarkers: [UserMarker] = []
+    
+    //MARK: -
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -44,13 +50,12 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         locationManager.startUpdatingLocation()
         
         // Create a GMSCameraPosition that tells the map to display the
-        // coordinate -33.86,151.20 at zoom level 6.
-        let camera = GMSCameraPosition.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
-        let mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
+        camera = GMSCameraPosition()//.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
+        mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera!)
         mapView.delegate = self
         //        mapView.isTrafficEnabled = true
         view = mapView
-        self.mapView = mapView
+        self.mapView.isMyLocationEnabled = true
         
         // Creates a marker in the center of the map.
         currentMarker = UserMarker()
@@ -66,31 +71,33 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         currentMarker?.iconView?.layer.borderWidth = 1
         currentMarker?.iconView?.bounds = CGRect(x: 0, y: (currentMarker?.iconView?.bounds.size.height)!/2, width: (currentMarker?.iconView?.bounds.size.width)!, height: (currentMarker?.iconView?.bounds.size.height)!)
         
-        locations.append(CLLocationCoordinate2D(latitude: 22.75042399427852, longitude: 75.895100645720959))
-        locations.append(CLLocationCoordinate2D(latitude: 22.750322888780673, longitude: 75.895100645720959))
-        locations.append(CLLocationCoordinate2D(latitude: 22.750199212228981, longitude: 75.895088240504265))
-        locations.append(CLLocationCoordinate2D(latitude: 22.750120677560535, longitude: 75.89503962546587))
-        locations.append(CLLocationCoordinate2D(latitude: 22.750059148399007, longitude: 75.895049013197422))
-        locations.append(CLLocationCoordinate2D(latitude: 22.749955259902574, longitude: 75.895054377615452))
-        locations.append(CLLocationCoordinate2D(latitude: 22.749890947936635, longitude: 75.895011462271214))
-        locations.append(CLLocationCoordinate2D(latitude: 22.749801900549183, longitude: 75.894984640181065))
-        locations.append(CLLocationCoordinate2D(latitude: 22.749722747267178, longitude: 75.894968546926975))
-        locations.append(CLLocationCoordinate2D(latitude: 22.749643593939336, longitude: 75.894930996000767))
-        locations.append(CLLocationCoordinate2D(latitude: 22.749574334739847, longitude: 75.894904173910618))
-        locations.append(CLLocationCoordinate2D(latitude: 22.749460551693062, longitude: 75.894866622984409))
-        locations.append(CLLocationCoordinate2D(latitude: 22.749381398213327, longitude: 75.894823707640171))
-        locations.append(CLLocationCoordinate2D(latitude: 22.749277509201576, longitude: 75.894796885550022))
-        locations.append(CLLocationCoordinate2D(latitude: 22.749208249816537, longitude: 75.894786156713963))
-        locations.append(CLLocationCoordinate2D(latitude: 22.749143937498992, longitude: 75.894764699041843))
-        locations.append(CLLocationCoordinate2D(latitude: 22.749020259880162, longitude: 75.894694961607456))
-        locations.append(CLLocationCoordinate2D(latitude: 22.749010365665814, longitude: 75.894684232771397))
-        locations.append(CLLocationCoordinate2D(latitude: 22.749017786326654, longitude: 75.894614495337009))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.75042399427852, longitude: 75.895100645720959))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.750322888780673, longitude: 75.895100645720959))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.750199212228981, longitude: 75.895088240504265))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.750120677560535, longitude: 75.89503962546587))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.750059148399007, longitude: 75.895049013197422))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.749955259902574, longitude: 75.895054377615452))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.749890947936635, longitude: 75.895011462271214))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.749801900549183, longitude: 75.894984640181065))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.749722747267178, longitude: 75.894968546926975))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.749643593939336, longitude: 75.894930996000767))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.749574334739847, longitude: 75.894904173910618))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.749460551693062, longitude: 75.894866622984409))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.749381398213327, longitude: 75.894823707640171))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.749277509201576, longitude: 75.894796885550022))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.749208249816537, longitude: 75.894786156713963))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.749143937498992, longitude: 75.894764699041843))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.749020259880162, longitude: 75.894694961607456))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.749010365665814, longitude: 75.894684232771397))
+//        locations.append(CLLocationCoordinate2D(latitude: 22.749017786326654, longitude: 75.894614495337009))
         
         
         currentUserPolyline = GMSPolyline(path: currentUserPath)
         currentUserPolyline?.strokeWidth = 2
         currentUserPolyline?.strokeColor = loggedInUserPathColor
         currentUserPolyline?.map = mapView
+        
+        addMarkers(of: Friend.friendsWithFakeLocations())
     }
     
     //MARK: GMS delegate methods
@@ -98,7 +105,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     func mapView(_ mapView: GMSMapView, didTapAt coordinate: CLLocationCoordinate2D) {
 
 //        updateCoordinate(coordinate: coordinate)
-        didTap = coordinate
+//        didTap = coordinate
         drawRoute()
         print("coordinate: \(coordinate)")
     }
@@ -121,9 +128,9 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     }
     
     func mapView(_ mapView: GMSMapView, didTap marker: GMSMarker) -> Bool {
-        //        makeMarkerMove()
+        remove(markers: [marker as! UserMarker])
         
-        return true
+        return false
     }
     
     func mapView(_ mapView: GMSMapView, willMove gesture: Bool) {
@@ -161,7 +168,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
             self.fetchPolylineWithOrigin(origin: originLocation, destination: dsetinationLocation) { (currentUserPolyline) in
                 if currentUserPolyline != nil {
                     DispatchQueue.main.async {
-//                        currentUserPolyline?.map = self.mapView
+                        currentUserPolyline?.map = self.mapView
                     }
                 }
             }
@@ -199,7 +206,6 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
                     polyline = GMSPolyline(path: path)
                     polyline?.strokeWidth = 2
                     polyline?.strokeColor = loggedInUserPathColor
-                    polyline?.map = self.mapView
                 }
                 
                 DispatchQueue.main.async {
@@ -228,10 +234,44 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         //        polyline?.strokeWidth = 2
         //        polyline?.strokeColor = loggedInUserPathColor
         //        polyline?.map = mapView
+        
+        myLatestLocation = locations.last
+        camera = GMSCameraPosition.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
+//        camera = GMSCameraPosition.camera(withLatitude: (myLatestLocation?.coordinate.latitude)!, longitude: (myLatestLocation?.coordinate.longitude)!, zoom: 15.0)
+        mapView.camera = camera!
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print(error)
+    }
+    
+    //MARK:
+    
+    func addMarkers(of friends:[Friend]) {
+        for friend in friends {
+            let image = UIImage(named: "friendMarker")
+            let markerImageView = UIImageView(image: image)
+            markerImageView.bounds = CGRect(x: 0, y: 0, width: 30, height: 30)
+            let friendMarker: UserMarker = UserMarker()
+            friendMarker.iconView = markerImageView
+            friendMarker.position = friend.lastLocation!
+//            friendMarker.title = "Indore"
+//            friendMarker.snippet = "India"
+            friendMarker.map = mapView
+            friendMarker.iconView?.bounds = CGRect(x: 0, y: (friendMarker.iconView?.bounds.size.height)!/2, width: (friendMarker.iconView?.bounds.size.width)!, height: (friendMarker.iconView?.bounds.size.height)!)
+            
+            friendsMarkers.append(friendMarker)
+        }
+    }
+    
+    func remove(markers: [UserMarker]) {
+        for marker in markers {
+            if friendsMarkers.index(of: marker) != Int.max {
+                marker.map = nil
+                marker.iconView = nil
+                friendsMarkers.remove(at: friendsMarkers.index(of: marker)!)
+            }
+        }
     }
     
     
