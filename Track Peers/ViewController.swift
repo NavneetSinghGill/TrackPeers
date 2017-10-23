@@ -9,8 +9,8 @@
 import UIKit
 import GoogleMaps
 
-class ViewController: UIViewController, GMSMapViewDelegate {
-
+class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDelegate {
+    
     var mapView: GMSMapView!
     var logiTextField: UITextField!
     var latiTextField: UITextField!
@@ -19,6 +19,12 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     var currentCoordinate: CLLocationCoordinate2D?
     var locations: [CLLocationCoordinate2D] = []
     var bearingAngleRadians: CGFloat = 0
+    
+    var locationManager = CLLocationManager()
+    var currentUserPath = GMSMutablePath()
+    var currentUserPolyline: GMSPolyline?
+    var didTap: CLLocationCoordinate2D?
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,15 +36,21 @@ class ViewController: UIViewController, GMSMapViewDelegate {
         super.viewDidAppear(animated)
         
     }
-
+    
     override func loadView() {
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.desiredAccuracy = 0.002
+        locationManager.startUpdatingLocation()
+        
         // Create a GMSCameraPosition that tells the map to display the
         // coordinate -33.86,151.20 at zoom level 6.
-        let camera = GMSCameraPosition.camera(withLatitude: 22.7533, longitude: 75.8937, zoom: 15.0)
+        let camera = GMSCameraPosition.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
         let mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
         mapView.delegate = self
-        mapView.isTrafficEnabled = true
+        //        mapView.isTrafficEnabled = true
         view = mapView
+        self.mapView = mapView
         
         // Creates a marker in the center of the map.
         currentMarker = UserMarker()
@@ -46,7 +58,7 @@ class ViewController: UIViewController, GMSMapViewDelegate {
         let markerImageView = UIImageView(image: image)
         markerImageView.bounds = CGRect(x: 0, y: 0, width: 30, height: 30)
         currentMarker?.iconView = markerImageView
-        currentMarker?.position = CLLocationCoordinate2D(latitude: 22.7533, longitude: 75.8937)
+        currentMarker?.position = CLLocationCoordinate2D(latitude: 22.75042399427852, longitude: 75.895100645720959)
         currentCoordinate = currentMarker?.position
         currentMarker?.title = "Indore"
         currentMarker?.snippet = "India"
@@ -74,11 +86,24 @@ class ViewController: UIViewController, GMSMapViewDelegate {
         locations.append(CLLocationCoordinate2D(latitude: 22.749010365665814, longitude: 75.894684232771397))
         locations.append(CLLocationCoordinate2D(latitude: 22.749017786326654, longitude: 75.894614495337009))
         
+        
+        currentUserPolyline = GMSPolyline(path: currentUserPath)
+        currentUserPolyline?.strokeWidth = 2
+        currentUserPolyline?.strokeColor = loggedInUserPathColor
+        currentUserPolyline?.map = mapView
     }
     
     //MARK: GMS delegate methods
     
     func mapView(_ mapView: GMSMapView, didTapAt coordinate: CLLocationCoordinate2D) {
+
+//        updateCoordinate(coordinate: coordinate)
+        didTap = coordinate
+        drawRoute()
+        print("coordinate: \(coordinate)")
+    }
+    
+    func updateCoordinate(coordinate: CLLocationCoordinate2D) {
         previousCoordinate = currentCoordinate
         currentCoordinate = coordinate
         
@@ -87,11 +112,16 @@ class ViewController: UIViewController, GMSMapViewDelegate {
             self.currentMarker?.updateBearingWith(bearing: self.bearingAngleRadians)
             self.currentMarker?.position = coordinate
         }
-        print("coordinate: \(coordinate)")
+        
+        currentUserPath.add(coordinate)
+        currentUserPolyline = GMSPolyline(path: currentUserPath)
+        currentUserPolyline?.strokeWidth = 2
+        currentUserPolyline?.strokeColor = loggedInUserPathColor
+        currentUserPolyline?.map = mapView
     }
     
     func mapView(_ mapView: GMSMapView, didTap marker: GMSMarker) -> Bool {
-        makeMarkerMove()
+        //        makeMarkerMove()
         
         return true
     }
@@ -114,11 +144,96 @@ class ViewController: UIViewController, GMSMapViewDelegate {
         return radianAngle
     }
     
-    func makeMarkerMove() {
-        for location in locations {
-            currentMarker?.position = location
+    //    func makeMarkerMove() {
+    //        for location in locations {
+    //            currentMarker?.position = location
+    //        }
+    //    }
+    
+    func drawRoute() {
+        let originLocation2D = CLLocationCoordinate2D(latitude: 22.741162791314817, longitude: 75.892375521361828)
+        let destinationLocation2D = CLLocationCoordinate2D(latitude: 22.752719409058209, longitude: 75.888148359954357)
+        
+        let originLocation = CLLocation(latitude: originLocation2D.latitude, longitude: originLocation2D.longitude)
+        let dsetinationLocation = CLLocation(latitude: destinationLocation2D.latitude, longitude: destinationLocation2D.longitude)
+        
+        DispatchQueue.main.async {
+            self.fetchPolylineWithOrigin(origin: originLocation, destination: dsetinationLocation) { (currentUserPolyline) in
+                if currentUserPolyline != nil {
+                    DispatchQueue.main.async {
+//                        currentUserPolyline?.map = self.mapView
+                    }
+                }
+            }
         }
     }
-
+    
+    func fetchPolylineWithOrigin(origin: CLLocation, destination: CLLocation, completionHandler: @escaping ((_ polyline: GMSPolyline?) -> Void)) {
+        let originString = "\(origin.coordinate.latitude),\(origin.coordinate.longitude)"
+        let destinationString = "\(destination.coordinate.latitude),\(destination.coordinate.longitude)"
+        let directionsAPI = "https://maps.googleapis.com/maps/api/directions/json?"
+        let directionsUrlString = "\(directionsAPI)&origin=\(originString)&destination=\(destinationString)&mode=driving"
+        let directionsUrl = URL(string: directionsUrlString)
+        
+        let request = URLRequest(url: directionsUrl!)
+        let config = URLSessionConfiguration.default
+        let session = URLSession(configuration: config)
+        
+        let task = session.dataTask(with: request) { (data, response, error) in
+            DispatchQueue.main.async {
+            do {
+                let json = try JSONSerialization.jsonObject(with: data!, options: JSONSerialization.ReadingOptions.allowFragments)
+                if (error != nil) {
+                    completionHandler(nil)
+                    return
+                }
+                
+                let routesArray: Array<AnyObject> = (json as! Dictionary<String, AnyObject>)["routes"] as! Array<AnyObject>
+                var polyline: GMSPolyline? = nil
+                
+                if routesArray.count > 0 {
+                    let routeDict: Dictionary<String,AnyObject> = routesArray[0] as! Dictionary<String, AnyObject>
+                    let routeOverviewPolyline: Dictionary<String, AnyObject> = routeDict["overview_polyline"] as! Dictionary<String, AnyObject>
+                    let points: String = routeOverviewPolyline["points"] as! String
+                    let path: GMSPath = GMSPath(fromEncodedPath: points)!
+                    polyline = GMSPolyline(path: path)
+                    polyline?.strokeWidth = 2
+                    polyline?.strokeColor = loggedInUserPathColor
+                    polyline?.map = self.mapView
+                }
+                
+                DispatchQueue.main.async {
+                    completionHandler(polyline)
+                }
+            } catch _ {
+                
+                }
+                
+            }
+        }
+        
+        task.resume()
+    }
+    
+    //    - (void)fetchPolylineWithOrigin:(CLLocation *)origin destination:(CLLocation *)destination completionHandler:(void (^)(GMSPolyline *))completionHandler
+    
+    //MARK: MAPKit methods
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        print(locations)
+        
+        //TODO: This will be used in real for updating the true location
+        //        currentUserPath.add((locations.last?.coordinate)!)
+        //        polyline = GMSPolyline(path: currentUserPath)
+        //        polyline?.strokeWidth = 2
+        //        polyline?.strokeColor = loggedInUserPathColor
+        //        polyline?.map = mapView
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print(error)
+    }
+    
+    
 }
 

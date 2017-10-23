@@ -31,6 +31,7 @@
 		530CF14F1F8F8A4000A5C7AD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		538C30BF1F909D05008D4290 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		53D92F5D1F95FE6500298C48 /* UserMarker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMarker.swift; sourceTree = "<group>"; };
+		53D92F5F1F96119A00298C48 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		B8D4086BE3530B0CC5155333 /* Pods-Track Peers.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Track Peers.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Track Peers/Pods-Track Peers.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -83,6 +84,7 @@
 		E59E34406AB8803923E5E381 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				53D92F5F1F96119A00298C48 /* MapKit.framework */,
 				10F8F8B0F836152119CB5FB1 /* libPods-Track Peers.a */,
 			);
 			name = Frameworks;
@@ -133,6 +135,11 @@
 					530CF13C1F8F8A4000A5C7AD = {
 						CreatedOnToolsVersion = 9.0;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};

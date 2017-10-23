@@ -12,3 +12,5 @@ let appDelegate = UIApplication.shared.delegate as! AppDelegate
 
 let screenWidth = UIScreen.main.bounds.width
 let screenHeight = UIScreen.main.bounds.height
+
+let loggedInUserPathColor = UIColor.black
