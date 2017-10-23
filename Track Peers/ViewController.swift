@@ -13,7 +13,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     
     var myLatestLocation: CLLocation?
     
-    var mapView: GMSMapView!
+    @IBOutlet weak var mapView: GMSMapView!
     var camera: GMSCameraPosition?
     var logiTextField: UITextField!
     var latiTextField: UITextField!
@@ -35,15 +35,15 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        
-    }
-    
-    override func loadView() {
+//
+//    }
+//
+//    override func viewDidAppear(_ animated: Bool) {
+//        super.viewDidAppear(animated)
+//
+//    }
+//
+//    override func loadView() {
         locationManager.delegate = self
         locationManager.requestWhenInUseAuthorization()
         locationManager.desiredAccuracy = 0.002
@@ -51,10 +51,11 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         
         // Create a GMSCameraPosition that tells the map to display the
         camera = GMSCameraPosition()//.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
-        mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera!)
+//        mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera!)
+        mapView.camera = camera!
         mapView.delegate = self
         //        mapView.isTrafficEnabled = true
-        view = mapView
+//        view = mapView
         self.mapView.isMyLocationEnabled = true
         
         // Creates a marker in the center of the map.
