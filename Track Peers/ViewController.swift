@@ -14,6 +14,8 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     var locationManager = CLLocationManager()
     
     @IBOutlet weak var mapView: GMSMapView!
+    @IBOutlet weak var latTextField: UITextField!
+    @IBOutlet weak var longTextField: UITextField!
     var camera: GMSCameraPosition?
     var bearingAngleRadians: CGFloat = 0 //Map rotation angle
     
@@ -40,7 +42,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
 //    override func loadView() {
         locationManager.delegate = self
         locationManager.requestWhenInUseAuthorization()
-        locationManager.desiredAccuracy = 0.002
+        locationManager.desiredAccuracy = 0.0001//0.002
         locationManager.startUpdatingLocation()
         
         // Create a GMSCameraPosition that tells the map to display the
@@ -99,9 +101,9 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     //MARK: - GMS delegate methods
     
     func mapView(_ mapView: GMSMapView, didTapAt coordinate: CLLocationCoordinate2D) {
-        if isSimulator {
+//        if isSimulator {
             updateMy(locationCoordinate: coordinate)
-        }
+//        }
         
         print("coordinate: \(coordinate)")
     }
@@ -277,7 +279,9 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     
     func followSelectedFriendsMarker() {
         if selectedMarker != nil {
-            drawRoute(fromLocation: CLLocationCoordinate2D(latitude: (myCurrentCoordinate?.latitude)!, longitude: (myCurrentCoordinate?.longitude)!), toLocation: CLLocationCoordinate2D(latitude: (selectedMarker?.position.latitude)!, longitude: (selectedMarker?.position.longitude)!))
+            latTextField.text = "\(String(describing: myCurrentCoordinate?.latitude))"
+            longTextField.text = "\(String(describing: myCurrentCoordinate?.longitude))"
+                drawRoute(fromLocation: CLLocationCoordinate2D(latitude: (myCurrentCoordinate?.latitude)!, longitude: (myCurrentCoordinate?.longitude)!), toLocation: CLLocationCoordinate2D(latitude: (selectedMarker?.position.latitude)!, longitude: (selectedMarker?.position.longitude)!))
         }
     }
     
