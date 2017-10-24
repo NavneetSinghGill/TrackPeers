@@ -52,7 +52,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         mapView.delegate = self
 //        mapView.isTrafficEnabled = true
 //        view = mapView
-        self.mapView.isMyLocationEnabled = true
+//        self.mapView.isMyLocationEnabled = true
 //        self.mapView.mapType = .satellite
         
         // Creates a marker in the center of the map.
@@ -62,33 +62,12 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         Global.fill(color: UIColor.red, inImageView: markerImageView)
         markerImageView.bounds = CGRect(x: 0, y: 0, width: 30, height: 30)
         myMarker?.iconView = markerImageView
-        myMarker?.position = CLLocationCoordinate2D(latitude: 22.75042399427852, longitude: 75.895100645720959)
+//        myMarker?.position = CLLocationCoordinate2D(latitude: 22.75042399427852, longitude: 75.895100645720959)
         myCurrentCoordinate = myMarker?.position
         myMarker?.title = "Indore"
         myMarker?.snippet = "India"
         myMarker?.map = mapView
         myMarker?.iconView?.bounds = CGRect(x: 0, y: (myMarker?.iconView?.bounds.size.height)!/2, width: (myMarker?.iconView?.bounds.size.width)!, height: (myMarker?.iconView?.bounds.size.height)!)
-        
-//        locations.append(CLLocationCoordinate2D(latitude: 22.75042399427852, longitude: 75.895100645720959))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.750322888780673, longitude: 75.895100645720959))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.750199212228981, longitude: 75.895088240504265))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.750120677560535, longitude: 75.89503962546587))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.750059148399007, longitude: 75.895049013197422))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.749955259902574, longitude: 75.895054377615452))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.749890947936635, longitude: 75.895011462271214))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.749801900549183, longitude: 75.894984640181065))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.749722747267178, longitude: 75.894968546926975))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.749643593939336, longitude: 75.894930996000767))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.749574334739847, longitude: 75.894904173910618))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.749460551693062, longitude: 75.894866622984409))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.749381398213327, longitude: 75.894823707640171))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.749277509201576, longitude: 75.894796885550022))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.749208249816537, longitude: 75.894786156713963))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.749143937498992, longitude: 75.894764699041843))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.749020259880162, longitude: 75.894694961607456))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.749010365665814, longitude: 75.894684232771397))
-//        locations.append(CLLocationCoordinate2D(latitude: 22.749017786326654, longitude: 75.894614495337009))
-        
         
         currentUserPolyline = GMSPolyline(path: currentUserPath)
         currentUserPolyline?.strokeWidth = 2
@@ -145,22 +124,16 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         print(locations)
         
-        //TODO: This will be used in real for updating the true location
-        //        currentUserPath.add((locations.last?.coordinate)!)
-        //        polyline = GMSPolyline(path: currentUserPath)
-        //        polyline?.strokeWidth = 2
-        //        polyline?.strokeColor = loggedInUserPathColor
-        //        polyline?.map = mapView
-        
         myLatestLocation = locations.last
-        if isSimulator {
-            camera = GMSCameraPosition.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
-        } else {
+        
+//        if isSimulator {
+//            camera = GMSCameraPosition.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
+//        } else {
             camera = GMSCameraPosition.camera(withLatitude: (myLatestLocation?.coordinate.latitude)!, longitude: (myLatestLocation?.coordinate.longitude)!, zoom: 15.0)
-            
-            updateMy(locationCoordinate: (myLatestLocation?.coordinate)!)
-        }
+        
         mapView.camera = camera!
+            updateMy(locationCoordinate: (myLatestLocation?.coordinate)!)
+//        }
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -214,7 +187,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         return radianAngle
     }
     
-    func drawRoute(fromLocation: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: 22.741162791314817, longitude: 75.892375521361828), toLocation: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: 22.752719409058209, longitude: 75.888148359954357)) {
+    func drawRoute(fromLocation: CLLocationCoordinate2D, toLocation: CLLocationCoordinate2D) {
     
         let originLocation: CLLocation = CLLocation(latitude: fromLocation.latitude, longitude: fromLocation.longitude)
         let destinationLocation: CLLocation = CLLocation(latitude: toLocation.latitude, longitude: toLocation.longitude)
@@ -279,8 +252,6 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     
     func followSelectedFriendsMarker() {
         if selectedMarker != nil {
-            latTextField.text = "\(String(describing: myCurrentCoordinate?.latitude))"
-            longTextField.text = "\(String(describing: myCurrentCoordinate?.longitude))"
                 drawRoute(fromLocation: CLLocationCoordinate2D(latitude: (myCurrentCoordinate?.latitude)!, longitude: (myCurrentCoordinate?.longitude)!), toLocation: CLLocationCoordinate2D(latitude: (selectedMarker?.position.latitude)!, longitude: (selectedMarker?.position.longitude)!))
         }
     }
@@ -299,6 +270,8 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         myCurrentCoordinate = locationCoordinate
         
         resetRouteFor(marker: selectedMarker)
+        latTextField.text = "\(String(describing: myCurrentCoordinate?.latitude))"
+        longTextField.text = "\(String(describing: myCurrentCoordinate?.longitude))"
         followSelectedFriendsMarker()
     }
     
