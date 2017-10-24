@@ -14,6 +14,7 @@
 		530CF14B1F8F8A4000A5C7AD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 530CF14A1F8F8A4000A5C7AD /* Assets.xcassets */; };
 		530CF14E1F8F8A4000A5C7AD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 530CF14C1F8F8A4000A5C7AD /* LaunchScreen.storyboard */; };
 		538C30C01F909D05008D4290 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 538C30BF1F909D05008D4290 /* Constants.swift */; };
+		539C4E311F9F10B600B282F0 /* Global.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539C4E301F9F10B600B282F0 /* Global.swift */; };
 		53B2E5DB1F9DC94F002B093D /* Friend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B2E5DA1F9DC94F002B093D /* Friend.swift */; };
 		53D92F5E1F95FE6500298C48 /* UserMarker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53D92F5D1F95FE6500298C48 /* UserMarker.swift */; };
 		86B4BFC70823FBA2AB842250 /* libPods-Track Peers.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 10F8F8B0F836152119CB5FB1 /* libPods-Track Peers.a */; };
@@ -32,6 +33,7 @@
 		530CF14F1F8F8A4000A5C7AD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		537505911F9DD3380011D8CC /* Vijay nagar bus stop.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Vijay nagar bus stop.gpx"; sourceTree = SOURCE_ROOT; };
 		538C30BF1F909D05008D4290 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		539C4E301F9F10B600B282F0 /* Global.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Global.swift; sourceTree = "<group>"; };
 		53B2E5DA1F9DC94F002B093D /* Friend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Friend.swift; sourceTree = "<group>"; };
 		53D92F5D1F95FE6500298C48 /* UserMarker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMarker.swift; sourceTree = "<group>"; };
 		53D92F5F1F96119A00298C48 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
@@ -76,6 +78,7 @@
 				538C30BF1F909D05008D4290 /* Constants.swift */,
 				530CF1421F8F8A4000A5C7AD /* ViewController.swift */,
 				53D92F5D1F95FE6500298C48 /* UserMarker.swift */,
+				539C4E301F9F10B600B282F0 /* Global.swift */,
 				530CF1441F8F8A4000A5C7AD /* Main.storyboard */,
 				530CF14A1F8F8A4000A5C7AD /* Assets.xcassets */,
 				530CF14C1F8F8A4000A5C7AD /* LaunchScreen.storyboard */,
@@ -253,6 +256,7 @@
 				53B2E5DB1F9DC94F002B093D /* Friend.swift in Sources */,
 				530CF1411F8F8A4000A5C7AD /* AppDelegate.swift in Sources */,
 				538C30C01F909D05008D4290 /* Constants.swift in Sources */,
+				539C4E311F9F10B600B282F0 /* Global.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

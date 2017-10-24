@@ -54,8 +54,9 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
 //        self.mapView.mapType = .satellite
         // Creates a marker in the center of the map.
         currentMarker = UserMarker()
-        let image = UIImage(named: "car")
+        let image = UIImage(named: "marker")
         let markerImageView = UIImageView(image: image)
+        Global.fill(color: UIColor.red, inImageView: markerImageView)
         markerImageView.bounds = CGRect(x: 0, y: 0, width: 30, height: 30)
         currentMarker?.iconView = markerImageView
         currentMarker?.position = CLLocationCoordinate2D(latitude: 22.75042399427852, longitude: 75.895100645720959)
@@ -63,7 +64,6 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         currentMarker?.title = "Indore"
         currentMarker?.snippet = "India"
         currentMarker?.map = mapView
-        currentMarker?.iconView?.layer.borderWidth = 1
         currentMarker?.iconView?.bounds = CGRect(x: 0, y: (currentMarker?.iconView?.bounds.size.height)!/2, width: (currentMarker?.iconView?.bounds.size.width)!, height: (currentMarker?.iconView?.bounds.size.height)!)
         
 //        locations.append(CLLocationCoordinate2D(latitude: 22.75042399427852, longitude: 75.895100645720959))
@@ -173,15 +173,22 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
             self.selectedMarker = marker
             
         }
-        let follow = UIAlertAction(title: "Follow", style: .default) { (action) in
-            self.resetRouteFor(marker: self.selectedMarker)
-            self.selectedMarker = marker
-            self.followSelectedFriendsMarker()
-        }
         let showRoutine = UIAlertAction(title: "Show routine", style: .default) { (action) in
             self.resetRouteFor(marker: self.selectedMarker)
             self.selectedMarker = marker
             
+        }
+        let follow: UIAlertAction!
+        if marker == selectedMarker {
+            follow = UIAlertAction(title: "Stop following", style: .destructive) { (action) in
+                self.resetRouteFor(marker: self.selectedMarker)
+            }
+        } else {
+            follow = UIAlertAction(title: "Follow", style: .default) { (action) in
+                self.resetRouteFor(marker: self.selectedMarker)
+                self.selectedMarker = marker
+                self.followSelectedFriendsMarker()
+            }
         }
         
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
@@ -288,14 +295,14 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         }
         
         for friend in friends {
-            let image = UIImage(named: "friendMarker")
+            let image = UIImage(named: "marker")
             let markerImageView = UIImageView(image: image)
             markerImageView.bounds = CGRect(x: 0, y: 0, width: 30, height: 30)
             let friendMarker: UserMarker = UserMarker()
             friendMarker.iconView = markerImageView
             friendMarker.position = friend.lastLocation!
-            friendMarker.title = "Indore"
-            friendMarker.snippet = "India"
+//            friendMarker.title = "Indore"
+//            friendMarker.snippet = "India"
             friendMarker.map = mapView
             friendMarker.iconView?.bounds = CGRect(x: 0, y: (friendMarker.iconView?.bounds.size.height)!/2, width: (friendMarker.iconView?.bounds.size.width)!, height: (friendMarker.iconView?.bounds.size.height)!)
             friendMarker.friend = friend
