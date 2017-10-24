@@ -93,19 +93,14 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         currentUserPolyline?.strokeColor = loggedInUserPathColor
         currentUserPolyline?.map = mapView
         
-        addMarkers(of: Friend.friendsWithFakeLocations(),shouldClearOldData: true)
+        addMarkers(of: User.usersWithFakeLocations(),shouldClearOldData: true)
     }
     
     //MARK: - GMS delegate methods
     
     func mapView(_ mapView: GMSMapView, didTapAt coordinate: CLLocationCoordinate2D) {
         if isSimulator {
-            myMarker?.position = coordinate
-            myPreviousCoordinate = myCurrentCoordinate
-            myCurrentCoordinate = coordinate
-            
-            resetRouteFor(marker: selectedMarker)
-            followSelectedFriendsMarker()
+            updateMy(locationCoordinate: coordinate)
         }
         
         print("coordinate: \(coordinate)")
@@ -160,12 +155,8 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
             camera = GMSCameraPosition.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
         } else {
             camera = GMSCameraPosition.camera(withLatitude: (myLatestLocation?.coordinate.latitude)!, longitude: (myLatestLocation?.coordinate.longitude)!, zoom: 15.0)
-            myMarker?.position = (myLatestLocation?.coordinate)!
-            myPreviousCoordinate = myCurrentCoordinate
-            myCurrentCoordinate = (myLatestLocation?.coordinate)!
             
-            resetRouteFor(marker: selectedMarker)
-            followSelectedFriendsMarker()
+            updateMy(locationCoordinate: (myLatestLocation?.coordinate)!)
         }
         mapView.camera = camera!
     }
@@ -297,7 +288,17 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         }
     }
     
-    func addMarkers(of friends:[Friend], shouldClearOldData: Bool) {
+    //Update location variables for current user and refresh follow path if following someone
+    func updateMy(locationCoordinate: CLLocationCoordinate2D) {
+        myMarker?.position = locationCoordinate
+        myPreviousCoordinate = myCurrentCoordinate
+        myCurrentCoordinate = locationCoordinate
+        
+        resetRouteFor(marker: selectedMarker)
+        followSelectedFriendsMarker()
+    }
+    
+    func addMarkers(of friends:[User], shouldClearOldData: Bool) {
         if shouldClearOldData {
             remove(markers: self.friendsMarkers)
         }
@@ -313,7 +314,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
 //            friendMarker.snippet = "India"
             friendMarker.map = mapView
             friendMarker.iconView?.bounds = CGRect(x: 0, y: (friendMarker.iconView?.bounds.size.height)!/2, width: (friendMarker.iconView?.bounds.size.width)!, height: (friendMarker.iconView?.bounds.size.height)!)
-            friendMarker.friend = friend
+            friendMarker.user = friend
             
             friendsMarkers.append(friendMarker)
         }
