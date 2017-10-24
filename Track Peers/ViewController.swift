@@ -18,9 +18,9 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     var bearingAngleRadians: CGFloat = 0 //Map rotation angle
     
     //User specific
-    var currentMarker: UserMarker? // SubClass of GMSMarker
-    var previousCoordinate: CLLocationCoordinate2D?
-    var currentCoordinate: CLLocationCoordinate2D?
+    var myMarker: UserMarker? // SubClass of GMSMarker
+    var myPreviousCoordinate: CLLocationCoordinate2D?
+    var myCurrentCoordinate: CLLocationCoordinate2D?
     var myLatestLocation: CLLocation?
 //    var locations: [CLLocationCoordinate2D] = [] //User it for store users location
     var currentUserPath = GMSMutablePath()
@@ -48,23 +48,24 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
 //        mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera!)
         mapView.camera = camera!
         mapView.delegate = self
-        //        mapView.isTrafficEnabled = true
+//        mapView.isTrafficEnabled = true
 //        view = mapView
         self.mapView.isMyLocationEnabled = true
 //        self.mapView.mapType = .satellite
+        
         // Creates a marker in the center of the map.
-        currentMarker = UserMarker()
+        myMarker = UserMarker()
         let image = UIImage(named: "marker")
         let markerImageView = UIImageView(image: image)
         Global.fill(color: UIColor.red, inImageView: markerImageView)
         markerImageView.bounds = CGRect(x: 0, y: 0, width: 30, height: 30)
-        currentMarker?.iconView = markerImageView
-        currentMarker?.position = CLLocationCoordinate2D(latitude: 22.75042399427852, longitude: 75.895100645720959)
-        currentCoordinate = currentMarker?.position
-        currentMarker?.title = "Indore"
-        currentMarker?.snippet = "India"
-        currentMarker?.map = mapView
-        currentMarker?.iconView?.bounds = CGRect(x: 0, y: (currentMarker?.iconView?.bounds.size.height)!/2, width: (currentMarker?.iconView?.bounds.size.width)!, height: (currentMarker?.iconView?.bounds.size.height)!)
+        myMarker?.iconView = markerImageView
+        myMarker?.position = CLLocationCoordinate2D(latitude: 22.75042399427852, longitude: 75.895100645720959)
+        myCurrentCoordinate = myMarker?.position
+        myMarker?.title = "Indore"
+        myMarker?.snippet = "India"
+        myMarker?.map = mapView
+        myMarker?.iconView?.bounds = CGRect(x: 0, y: (myMarker?.iconView?.bounds.size.height)!/2, width: (myMarker?.iconView?.bounds.size.width)!, height: (myMarker?.iconView?.bounds.size.height)!)
         
 //        locations.append(CLLocationCoordinate2D(latitude: 22.75042399427852, longitude: 75.895100645720959))
 //        locations.append(CLLocationCoordinate2D(latitude: 22.750322888780673, longitude: 75.895100645720959))
@@ -98,23 +99,27 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     //MARK: - GMS delegate methods
     
     func mapView(_ mapView: GMSMapView, didTapAt coordinate: CLLocationCoordinate2D) {
-
-//        updateCoordinate(coordinate: coordinate)
-//        didTap = coordinate
-        drawRoute()
+        if isSimulator {
+            myMarker?.position = coordinate
+            myPreviousCoordinate = myCurrentCoordinate
+            myCurrentCoordinate = coordinate
+            
+            resetRouteFor(marker: selectedMarker)
+            followSelectedFriendsMarker()
+        }
+        
         print("coordinate: \(coordinate)")
     }
     
     func updateCoordinate(coordinate: CLLocationCoordinate2D) {
-        previousCoordinate = currentCoordinate
-        currentCoordinate = coordinate
+        myPreviousCoordinate = myCurrentCoordinate
+       myCurrentCoordinate = coordinate
         
         UIView.animate(withDuration: 0.3) {
-            self.currentMarker?.updateBaseAngleWith(baseAngle: self.getRadiansOfMarkerRotationWhenMoved(from: self.previousCoordinate!, to: self.currentCoordinate!))
-            self.currentMarker?.updateBearingWith(bearing: self.bearingAngleRadians)
-            self.currentMarker?.position = coordinate
+            self.myMarker?.updateBaseAngleWith(baseAngle: self.getRadiansOfMarkerRotationWhenMoved(from: self.myPreviousCoordinate!, to: self.myCurrentCoordinate!))
+            self.myMarker?.updateBearingWith(bearing: self.bearingAngleRadians)
+            self.myMarker?.position = coordinate
         }
-        
         currentUserPath.add(coordinate)
         currentUserPolyline = GMSPolyline(path: currentUserPath)
         currentUserPolyline?.strokeWidth = 2
@@ -134,7 +139,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     
     func mapView(_ mapView: GMSMapView, didChange position: GMSCameraPosition) {
         bearingAngleRadians = CGFloat((360 - position.bearing))/(180/CGFloat.pi)
-        self.currentMarker?.updateBearingWith(bearing: bearingAngleRadians)
+        self.myMarker?.updateBearingWith(bearing: bearingAngleRadians)
         print("Will change position: \(position)")
     }
     
@@ -151,11 +156,17 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         //        polyline?.map = mapView
         
         myLatestLocation = locations.last
-        #if (arch(i386) || arch(x86_64)) && (os(iOS) || os(watchOS) || os(tvOS)) //Simulator
+        if isSimulator {
             camera = GMSCameraPosition.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
-        #else
+        } else {
             camera = GMSCameraPosition.camera(withLatitude: (myLatestLocation?.coordinate.latitude)!, longitude: (myLatestLocation?.coordinate.longitude)!, zoom: 15.0)
-        #endif
+            myMarker?.position = (myLatestLocation?.coordinate)!
+            myPreviousCoordinate = myCurrentCoordinate
+            myCurrentCoordinate = (myLatestLocation?.coordinate)!
+            
+            resetRouteFor(marker: selectedMarker)
+            followSelectedFriendsMarker()
+        }
         mapView.camera = camera!
     }
     
@@ -182,6 +193,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         if marker == selectedMarker {
             follow = UIAlertAction(title: "Stop following", style: .destructive) { (action) in
                 self.resetRouteFor(marker: self.selectedMarker)
+                self.selectedMarker = nil
             }
         } else {
             follow = UIAlertAction(title: "Follow", style: .default) { (action) in
@@ -208,12 +220,6 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         print("radian angle: \(radianAngle), bearing: \(bearingAngleRadians)")
         return radianAngle
     }
-    
-    //    func makeMarkerMove() {
-    //        for location in locations {
-    //            currentMarker?.position = location
-    //        }
-    //    }
     
     func drawRoute(fromLocation: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: 22.741162791314817, longitude: 75.892375521361828), toLocation: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: 22.752719409058209, longitude: 75.888148359954357)) {
     
@@ -279,7 +285,9 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     }
     
     func followSelectedFriendsMarker() {
-        drawRoute(fromLocation: CLLocationCoordinate2D(latitude: (currentCoordinate?.latitude)!, longitude: (currentCoordinate?.longitude)!), toLocation: CLLocationCoordinate2D(latitude: (selectedMarker?.position.latitude)!, longitude: (selectedMarker?.position.longitude)!))
+        if selectedMarker != nil {
+            drawRoute(fromLocation: CLLocationCoordinate2D(latitude: (myCurrentCoordinate?.latitude)!, longitude: (myCurrentCoordinate?.longitude)!), toLocation: CLLocationCoordinate2D(latitude: (selectedMarker?.position.latitude)!, longitude: (selectedMarker?.position.longitude)!))
+        }
     }
     
     func resetRouteFor(marker: UserMarker?) {

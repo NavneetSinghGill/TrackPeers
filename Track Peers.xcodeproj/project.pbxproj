@@ -34,6 +34,7 @@
 		537505911F9DD3380011D8CC /* Vijay nagar bus stop.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Vijay nagar bus stop.gpx"; sourceTree = SOURCE_ROOT; };
 		538C30BF1F909D05008D4290 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		539C4E301F9F10B600B282F0 /* Global.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Global.swift; sourceTree = "<group>"; };
+		539C4E321F9F21E700B282F0 /* OrbitMall.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = OrbitMall.gpx; sourceTree = "<group>"; };
 		53B2E5DA1F9DC94F002B093D /* Friend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Friend.swift; sourceTree = "<group>"; };
 		53D92F5D1F95FE6500298C48 /* UserMarker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMarker.swift; sourceTree = "<group>"; };
 		53D92F5F1F96119A00298C48 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
@@ -83,6 +84,7 @@
 				530CF14A1F8F8A4000A5C7AD /* Assets.xcassets */,
 				530CF14C1F8F8A4000A5C7AD /* LaunchScreen.storyboard */,
 				537505911F9DD3380011D8CC /* Vijay nagar bus stop.gpx */,
+				539C4E321F9F21E700B282F0 /* OrbitMall.gpx */,
 				530CF14F1F8F8A4000A5C7AD /* Info.plist */,
 				530CF1471F8F8A4000A5C7AD /* Track_Peers.xcdatamodeld */,
 			);
