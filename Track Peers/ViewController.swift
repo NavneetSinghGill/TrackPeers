@@ -31,7 +31,8 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
 //    var locations: [CLLocationCoordinate2D] = [] //User it for store users location
     var currentUserPath: GMSMutablePath?
     var currentUserPolyline: GMSPolyline?
-
+    var multiPolyline: MultiPolyline?
+    
     //Friends specific
     var friendsMarkers: [UserMarker] = []
     var selectedMarker: UserMarker?
@@ -67,22 +68,34 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         Global.fill(color: UIColor.red, inImageView: markerImageView)
         markerImageView.bounds = CGRect(x: 0, y: 0, width: 30, height: 30)
         myMarker?.iconView = markerImageView
-        myCurrentCoordinate = myMarker?.position
-        myMarker?.title = "Indore"
-        myMarker?.snippet = "India"
+//        myCurrentCoordinate = myMarker?.position
+//        myMarker?.title = "Indore"
+//        myMarker?.snippet = "India"
         myMarker?.map = mapView
         myMarker?.iconView?.bounds = CGRect(x: 0, y: (myMarker?.iconView?.bounds.size.height)!/2, width: (myMarker?.iconView?.bounds.size.width)!, height: (myMarker?.iconView?.bounds.size.height)!)
         
+        //On start read the old saved path and update multipolyline
+        setMultiPolyline()
         if currentUserPath == nil {
             if UserDefaults.standard.value(forKey: kMyEncodedPath) as? String != nil {
-                currentUserPath = GMSMutablePath(fromEncodedPath: UserDefaults.standard.value(forKey: kMyEncodedPath) as! String)
-            } else {
-                currentUserPath = GMSMutablePath()
+                let oldUserPath: GMSMutablePath = GMSMutablePath(fromEncodedPath: UserDefaults.standard.value(forKey: kMyEncodedPath) as! String)!
+                multiPolyline?.add(polyine: getPolylineFor(path: oldUserPath))
+                UserDefaults.standard.set(multiPolyline, forKey: kMyMultiPolyline)
+                UserDefaults.standard.synchronize()
             }
+            currentUserPath = GMSMutablePath()
             currentUserPolyline = getPolylineFor(path: currentUserPath)
         }
         
         addMarkers(of: User.usersWithFakeLocations(),shouldClearOldData: true)
+    }
+    
+    func setMultiPolyline() {
+        if UserDefaults.standard.value(forKey: kMyMultiPolyline) as? MultiPolyline == nil {
+            multiPolyline = MultiPolyline()
+        } else {
+            multiPolyline = UserDefaults.standard.value(forKey: kMyMultiPolyline) as? MultiPolyline
+        }
     }
     
     //MARK: - GMS delegate methods
@@ -264,6 +277,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     
     //Update location variables for current user and refresh follow path if following someone
     func updateMy(locationCoordinate: CLLocationCoordinate2D) {
+        
         //Update variables
         myPreviousCoordinate = myCurrentCoordinate
         myCurrentCoordinate = locationCoordinate
@@ -277,6 +291,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
 //        }
         currentUserPath?.add(locationCoordinate)
         currentUserPolyline = getPolylineFor(path: currentUserPath)
+        multiPolyline?.drawPolylinesOnMap(mapView: mapView)
         
         //Save my traversed path
         UserDefaults.standard.setValue(currentUserPath?.encodedPath(), forKey: kMyEncodedPath)
@@ -289,7 +304,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         followSelectedFriendsMarker()
     }
     
-    func getPolylineFor(path: GMSPath?) -> GMSPolyline {
+    func getPolylineFor(path: GMSMutablePath?) -> GMSPolyline {
         let polyline = GMSPolyline(path: path)
         polyline.strokeWidth = 2
         polyline.strokeColor = loggedInUserPathColor

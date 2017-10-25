@@ -26,4 +26,5 @@ let followUserColor = UIColor.green
 //MARK: User defaults
 
 let kMyEncodedPath = "kMyEncodedPath"
+let kMyMultiPolyline = "kMyMultiPolyline"
 
