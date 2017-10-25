@@ -11,12 +11,16 @@ import GoogleMaps
 
 class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDelegate {
     
+    
+    let DEFAULT_ZOOM: Float = 15
+    
     var locationManager = CLLocationManager()
     
     @IBOutlet weak var mapView: GMSMapView!
     @IBOutlet weak var latTextField: UITextField!
     @IBOutlet weak var longTextField: UITextField!
-    var camera: GMSCameraPosition?
+    @IBOutlet weak var locationDisabledView: UIView!
+    var camera: GMSMutableCameraPosition?
     var bearingAngleRadians: CGFloat = 0 //Map rotation angle
     
     //User specific
@@ -25,7 +29,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     var myCurrentCoordinate: CLLocationCoordinate2D?
     var myLatestLocation: CLLocation?
 //    var locations: [CLLocationCoordinate2D] = [] //User it for store users location
-    var currentUserPath = GMSMutablePath()
+    var currentUserPath: GMSMutablePath?
     var currentUserPolyline: GMSPolyline?
 
     //Friends specific
@@ -46,8 +50,9 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         locationManager.startUpdatingLocation()
         
         // Create a GMSCameraPosition that tells the map to display the
-        camera = GMSCameraPosition()//.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
+        camera = GMSMutableCameraPosition()//.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
 //        mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera!)
+        camera?.zoom = DEFAULT_ZOOM
         mapView.camera = camera!
         mapView.delegate = self
 //        mapView.isTrafficEnabled = true
@@ -62,17 +67,20 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         Global.fill(color: UIColor.red, inImageView: markerImageView)
         markerImageView.bounds = CGRect(x: 0, y: 0, width: 30, height: 30)
         myMarker?.iconView = markerImageView
-//        myMarker?.position = CLLocationCoordinate2D(latitude: 22.75042399427852, longitude: 75.895100645720959)
         myCurrentCoordinate = myMarker?.position
         myMarker?.title = "Indore"
         myMarker?.snippet = "India"
         myMarker?.map = mapView
         myMarker?.iconView?.bounds = CGRect(x: 0, y: (myMarker?.iconView?.bounds.size.height)!/2, width: (myMarker?.iconView?.bounds.size.width)!, height: (myMarker?.iconView?.bounds.size.height)!)
         
-        currentUserPolyline = GMSPolyline(path: currentUserPath)
-        currentUserPolyline?.strokeWidth = 2
-        currentUserPolyline?.strokeColor = loggedInUserPathColor
-        currentUserPolyline?.map = mapView
+        if currentUserPath == nil {
+            if UserDefaults.standard.value(forKey: kMyEncodedPath) as? String != nil {
+                currentUserPath = GMSMutablePath(fromEncodedPath: UserDefaults.standard.value(forKey: kMyEncodedPath) as! String)
+            } else {
+                currentUserPath = GMSMutablePath()
+            }
+            currentUserPolyline = getPolylineFor(path: currentUserPath)
+        }
         
         addMarkers(of: User.usersWithFakeLocations(),shouldClearOldData: true)
     }
@@ -80,31 +88,17 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     //MARK: - GMS delegate methods
     
     func mapView(_ mapView: GMSMapView, didTapAt coordinate: CLLocationCoordinate2D) {
-//        if isSimulator {
+        if isSimulator {
             updateMy(locationCoordinate: coordinate)
-//        }
+        }
         
         print("coordinate: \(coordinate)")
     }
     
-    func updateCoordinate(coordinate: CLLocationCoordinate2D) {
-        myPreviousCoordinate = myCurrentCoordinate
-       myCurrentCoordinate = coordinate
-        
-        UIView.animate(withDuration: 0.3) {
-            self.myMarker?.updateBaseAngleWith(baseAngle: self.getRadiansOfMarkerRotationWhenMoved(from: self.myPreviousCoordinate!, to: self.myCurrentCoordinate!))
-            self.myMarker?.updateBearingWith(bearing: self.bearingAngleRadians)
-            self.myMarker?.position = coordinate
-        }
-        currentUserPath.add(coordinate)
-        currentUserPolyline = GMSPolyline(path: currentUserPath)
-        currentUserPolyline?.strokeWidth = 2
-        currentUserPolyline?.strokeColor = loggedInUserPathColor
-        currentUserPolyline?.map = mapView
-    }
-    
     func mapView(_ mapView: GMSMapView, didTap marker: GMSMarker) -> Bool {
-        showAlertActions(for: marker as? UserMarker)
+        if marker != myMarker {
+            showAlertActions(for: marker as? UserMarker)
+        }
         
         return true
     }
@@ -126,18 +120,23 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         
         myLatestLocation = locations.last
         
-//        if isSimulator {
-//            camera = GMSCameraPosition.camera(withLatitude: 22.75042399427852, longitude: 75.895100645720959, zoom: 15.0)
-//        } else {
-            camera = GMSCameraPosition.camera(withLatitude: (myLatestLocation?.coordinate.latitude)!, longitude: (myLatestLocation?.coordinate.longitude)!, zoom: 15.0)
+        camera = GMSMutableCameraPosition.camera(withLatitude: (myLatestLocation?.coordinate.latitude)!, longitude: (myLatestLocation?.coordinate.longitude)!, zoom: (camera?.zoom)!)
         
         mapView.camera = camera!
-            updateMy(locationCoordinate: (myLatestLocation?.coordinate)!)
-//        }
+        updateMy(locationCoordinate: (myLatestLocation?.coordinate)!)
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print(error)
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        if status == .authorizedWhenInUse { // if location is enabled
+            //TODO: If location is re-enabled the show position
+            locationDisabledView.isHidden = true
+        } else if status == .denied { // if denied to use the location
+            locationDisabledView.isHidden = false
+        }
     }
     
     //MARK: - Custom methods
@@ -234,7 +233,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
                     let path: GMSPath = GMSPath(fromEncodedPath: points)!
                     polyline = GMSPolyline(path: path)
                     polyline?.strokeWidth = 2
-                    polyline?.strokeColor = loggedInUserPathColor
+                    polyline?.strokeColor = followUserColor
                 }
                 
                 DispatchQueue.main.async {
@@ -265,14 +264,38 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     
     //Update location variables for current user and refresh follow path if following someone
     func updateMy(locationCoordinate: CLLocationCoordinate2D) {
-        myMarker?.position = locationCoordinate
+        //Update variables
         myPreviousCoordinate = myCurrentCoordinate
         myCurrentCoordinate = locationCoordinate
         
+        //Animate direction and draw my traversed path
+        
+//        UIView.animate(withDuration: 0.3) {
+//            self.myMarker?.updateBaseAngleWith(baseAngle: self.getRadiansOfMarkerRotationWhenMoved(from: self.myPreviousCoordinate!, to: self.myCurrentCoordinate!))
+//            self.myMarker?.updateBearingWith(bearing: self.bearingAngleRadians)
+            self.myMarker?.position = locationCoordinate
+//        }
+        currentUserPath?.add(locationCoordinate)
+        currentUserPolyline = getPolylineFor(path: currentUserPath)
+        
+        //Save my traversed path
+        UserDefaults.standard.setValue(currentUserPath?.encodedPath(), forKey: kMyEncodedPath)
+        UserDefaults.standard.synchronize()
+        
+        //Draw follow path
         resetRouteFor(marker: selectedMarker)
         latTextField.text = "\(String(describing: myCurrentCoordinate?.latitude))"
         longTextField.text = "\(String(describing: myCurrentCoordinate?.longitude))"
         followSelectedFriendsMarker()
+    }
+    
+    func getPolylineFor(path: GMSPath?) -> GMSPolyline {
+        let polyline = GMSPolyline(path: path)
+        polyline.strokeWidth = 2
+        polyline.strokeColor = loggedInUserPathColor
+        polyline.map = mapView
+        
+        return polyline
     }
     
     func addMarkers(of friends:[User], shouldClearOldData: Bool) {

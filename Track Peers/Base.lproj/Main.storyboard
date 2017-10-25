@@ -9,6 +9,11 @@
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
+    <customFonts key="customFonts">
+        <array key="HelveticaNeue.ttc">
+            <string>HelveticaNeue</string>
+        </array>
+    </customFonts>
     <scenes>
         <!--View Controller-->
         <scene sceneID="tne-QT-ifu">
@@ -27,6 +32,29 @@
                                     </userDefinedRuntimeAttribute>
                                 </userDefinedRuntimeAttributes>
                             </view>
+                            <visualEffectView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="8rh-EL-8OO">
+                                <rect key="frame" x="0.0" y="64" width="375" height="440"/>
+                                <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="4DG-gJ-7Oz">
+                                    <rect key="frame" x="0.0" y="0.0" width="375" height="440"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Couldn't fetch the location. Please enable it in settings." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="F8a-gM-1Jh">
+                                            <rect key="frame" x="62" y="200" width="250" height="40"/>
+                                            <constraints>
+                                                <constraint firstAttribute="width" constant="250" id="diU-av-VCm"/>
+                                            </constraints>
+                                            <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="17"/>
+                                            <nil key="textColor"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="F8a-gM-1Jh" firstAttribute="centerY" secondItem="4DG-gJ-7Oz" secondAttribute="centerY" id="hr5-OY-c3P"/>
+                                        <constraint firstItem="F8a-gM-1Jh" firstAttribute="centerX" secondItem="4DG-gJ-7Oz" secondAttribute="centerX" id="k5u-HY-NNc"/>
+                                    </constraints>
+                                </view>
+                                <blurEffect style="light"/>
+                            </visualEffectView>
                             <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Logitude" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="oLM-7U-eKL">
                                 <rect key="frame" x="10" y="524" width="355" height="30"/>
                                 <nil key="textColor"/>
@@ -42,22 +70,27 @@
                         </subviews>
                         <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstItem="8rh-EL-8OO" firstAttribute="trailing" secondItem="Z0e-hn-be2" secondAttribute="trailing" id="2YU-wu-bz4"/>
                             <constraint firstItem="oLM-7U-eKL" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="10" id="3LR-I5-NDC"/>
                             <constraint firstItem="Mne-8f-0Jo" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="10" id="CPJ-nc-BfH"/>
+                            <constraint firstItem="8rh-EL-8OO" firstAttribute="leading" secondItem="Z0e-hn-be2" secondAttribute="leading" id="NYb-jz-Wqq"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="Z0e-hn-be2" secondAttribute="trailing" id="RgL-u5-8Pw"/>
                             <constraint firstItem="Z0e-hn-be2" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="XE1-6H-aDe"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="oLM-7U-eKL" secondAttribute="trailing" constant="10" id="d6k-Gq-aeM"/>
                             <constraint firstItem="Z0e-hn-be2" firstAttribute="height" secondItem="8bC-Xf-vdC" secondAttribute="height" multiplier="0.66" id="dYV-Lu-1Sc"/>
                             <constraint firstItem="oLM-7U-eKL" firstAttribute="top" secondItem="Z0e-hn-be2" secondAttribute="bottom" constant="20" id="fO4-J7-OoN"/>
+                            <constraint firstItem="8rh-EL-8OO" firstAttribute="bottom" secondItem="Z0e-hn-be2" secondAttribute="bottom" id="hio-h4-cok"/>
                             <constraint firstItem="Z0e-hn-be2" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="jPg-tb-vdN"/>
                             <constraint firstItem="Mne-8f-0Jo" firstAttribute="top" secondItem="oLM-7U-eKL" secondAttribute="bottom" constant="20" id="o3d-F0-yQo"/>
                             <constraint firstAttribute="trailing" secondItem="Mne-8f-0Jo" secondAttribute="trailing" constant="10" id="wPu-CJ-bLw"/>
+                            <constraint firstItem="8rh-EL-8OO" firstAttribute="top" secondItem="Z0e-hn-be2" secondAttribute="top" id="xkh-Py-Ist"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
                     <navigationItem key="navigationItem" id="Vjh-G6-WKz"/>
                     <connections>
                         <outlet property="latTextField" destination="Mne-8f-0Jo" id="3Xe-Tc-rrY"/>
+                        <outlet property="locationDisabledView" destination="8rh-EL-8OO" id="3xV-67-VR1"/>
                         <outlet property="longTextField" destination="oLM-7U-eKL" id="1wL-HV-KaB"/>
                         <outlet property="mapView" destination="Z0e-hn-be2" id="tV6-75-kx5"/>
                     </connections>

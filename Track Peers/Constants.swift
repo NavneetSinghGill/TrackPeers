@@ -10,13 +10,20 @@ import UIKit
 
 let appDelegate = UIApplication.shared.delegate as! AppDelegate
 
+#if (arch(i386) || arch(x86_64)) && (os(iOS) || os(watchOS) || os(tvOS))
+let isSimulator = true
+#else
+let isSimulator = false
+#endif
+
+
 let screenWidth = UIScreen.main.bounds.width
 let screenHeight = UIScreen.main.bounds.height
 
 let loggedInUserPathColor = UIColor.black
+let followUserColor = UIColor.green
 
-#if (arch(i386) || arch(x86_64)) && (os(iOS) || os(watchOS) || os(tvOS))
-    let isSimulator = true
-#else
-    let isSimulator = false
-#endif
+//MARK: User defaults
+
+let kMyEncodedPath = "kMyEncodedPath"
+
