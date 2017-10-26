@@ -25,5 +25,9 @@ class UserMarker: GMSMarker {
         radianAngle = baseAngle
         self.iconView?.transform = CGAffineTransform(rotationAngle: baseAngle + bearingAngle)
     }
+    
+    init(user: User) {
+        self.user = user
+    }
 
 }

@@ -15,10 +15,10 @@
         </array>
     </customFonts>
     <scenes>
-        <!--View Controller-->
+        <!--Map View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="Track_Peers" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="BYZ-38-t0r" customClass="MapViewController" customModule="Track_Peers" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -89,10 +89,10 @@
                     </view>
                     <navigationItem key="navigationItem" id="Vjh-G6-WKz"/>
                     <connections>
-                        <outlet property="latTextField" destination="Mne-8f-0Jo" id="3Xe-Tc-rrY"/>
-                        <outlet property="locationDisabledView" destination="8rh-EL-8OO" id="3xV-67-VR1"/>
-                        <outlet property="longTextField" destination="oLM-7U-eKL" id="1wL-HV-KaB"/>
-                        <outlet property="mapView" destination="Z0e-hn-be2" id="tV6-75-kx5"/>
+                        <outlet property="latTextField" destination="Mne-8f-0Jo" id="pyP-7c-CSn"/>
+                        <outlet property="locationDisabledView" destination="8rh-EL-8OO" id="2Bc-k4-BNx"/>
+                        <outlet property="longTextField" destination="oLM-7U-eKL" id="qGU-aS-4O8"/>
+                        <outlet property="mapView" destination="Z0e-hn-be2" id="Eel-wg-OC6"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

@@ -10,13 +10,14 @@ import UIKit
 import CoreData
 import GoogleMaps
 import GooglePlaces
+import ReachabilitySwift
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-    let screenWidth = UIScreen.main.bounds.width
-    let screenHeight = UIScreen.main.bounds.height
+    var isNetworkAvailable: Bool = true
+    let reachability = Reachability()!
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
@@ -24,6 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         GMSServices.provideAPIKey("AIzaSyBuqyVCcFsvhCr9ujVL_9HxVpVdvbxHxxc")
         GMSPlacesClient.provideAPIKey("AIzaSyBuqyVCcFsvhCr9ujVL_9HxVpVdvbxHxxc")
         
+        setupNetworkMonitoring()
         return true
     }
 
@@ -93,6 +95,65 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 let nserror = error as NSError
                 fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
             }
+        }
+    }
+    
+    //MARK: Reachability methods
+    
+    public func isNetworkReachable() -> Bool {
+        return self.isNetworkAvailable
+    }
+    
+    func setupNetworkMonitoring() {
+        
+        reachability.whenReachable = { reachability in
+            // this is called on a background thread, but UI updates must
+            // be on the main thread, like this:
+            DispatchQueue.main.async {
+                if reachability.isReachableViaWiFi {
+                    print("Reachable via WiFi")
+                } else {
+                    print("Reachable via Cellular")
+                }
+                self.isNetworkAvailable = true
+            }
+        }
+        reachability.whenUnreachable = { reachability in
+            // this is called on a background thread, but UI updates must
+            // be on the main thread, like this:
+            DispatchQueue.main.async {
+                print("Not reachable")
+                
+                self.isNetworkAvailable = false
+            }
+        }
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(AppDelegate.reachabilityChanged),name: ReachabilityChangedNotification,object: reachability)
+        
+        do {
+            try reachability.startNotifier()
+        } catch {
+            print("Unable to start notifier")
+        }
+        
+    }
+    
+    @objc func reachabilityChanged(note: Notification) {
+        
+        let reachability = note.object as! Reachability
+        
+        if reachability.isReachable {
+            if reachability.isReachableViaWiFi {
+                print("Reachable via WiFi")
+            } else {
+                print("Reachable via Cellular")
+            }
+            self.isNetworkAvailable = true
+            
+        } else {
+            print("Network not reachable")
+            self.isNetworkAvailable = false
+            
         }
     }
 
