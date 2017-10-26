@@ -22,6 +22,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     @IBOutlet weak var locationDisabledView: UIView!
     var camera: GMSMutableCameraPosition?
     var bearingAngleRadians: CGFloat = 0 //Map rotation angle
+    var authorizationStatus: CLAuthorizationStatus = .notDetermined
     
     //User specific
     var myMarker: UserMarker? // SubClass of GMSMarker
@@ -31,7 +32,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
 //    var locations: [CLLocationCoordinate2D] = [] //User it for store users location
     var currentUserPath: GMSMutablePath?
     var currentUserPolyline: GMSPolyline?
-    var multiPolyline: MultiPolyline?
+//    var multiPolyline: MultiPolyline?
     
     //Friends specific
     var friendsMarkers: [UserMarker] = []
@@ -74,28 +75,17 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         myMarker?.map = mapView
         myMarker?.iconView?.bounds = CGRect(x: 0, y: (myMarker?.iconView?.bounds.size.height)!/2, width: (myMarker?.iconView?.bounds.size.width)!, height: (myMarker?.iconView?.bounds.size.height)!)
         
-        //On start read the old saved path and update multipolyline
-        setMultiPolyline()
-        if currentUserPath == nil {
-            if UserDefaults.standard.value(forKey: kMyEncodedPath) as? String != nil {
-                let oldUserPath: GMSMutablePath = GMSMutablePath(fromEncodedPath: UserDefaults.standard.value(forKey: kMyEncodedPath) as! String)!
-                multiPolyline?.add(polyine: getPolylineFor(path: oldUserPath))
-                UserDefaults.standard.set(multiPolyline, forKey: kMyMultiPolyline)
-                UserDefaults.standard.synchronize()
-            }
-            currentUserPath = GMSMutablePath()
+//        //On start read the old saved path and update multipolyline
+//        if currentUserPath == nil {
+//            if UserDefaults.standard.value(forKey: kMyEncodedPath) as? String != nil {
+//                currentUserPath = GMSMutablePath(fromEncodedPath: UserDefaults.standard.value(forKey: kMyEncodedPath) as! String)!
+//            } else {
+                currentUserPath = GMSMutablePath()
+//            }
             currentUserPolyline = getPolylineFor(path: currentUserPath)
-        }
+//        }
         
         addMarkers(of: User.usersWithFakeLocations(),shouldClearOldData: true)
-    }
-    
-    func setMultiPolyline() {
-        if UserDefaults.standard.value(forKey: kMyMultiPolyline) as? MultiPolyline == nil {
-            multiPolyline = MultiPolyline()
-        } else {
-            multiPolyline = UserDefaults.standard.value(forKey: kMyMultiPolyline) as? MultiPolyline
-        }
     }
     
     //MARK: - GMS delegate methods
@@ -131,12 +121,14 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         print(locations)
         
-        myLatestLocation = locations.last
-        
-        camera = GMSMutableCameraPosition.camera(withLatitude: (myLatestLocation?.coordinate.latitude)!, longitude: (myLatestLocation?.coordinate.longitude)!, zoom: (camera?.zoom)!)
-        
-        mapView.camera = camera!
-        updateMy(locationCoordinate: (myLatestLocation?.coordinate)!)
+        if authorizationStatus == .authorizedWhenInUse {
+            myLatestLocation = locations.last
+            
+            camera = GMSMutableCameraPosition.camera(withLatitude: (myLatestLocation?.coordinate.latitude)!, longitude: (myLatestLocation?.coordinate.longitude)!, zoom: (camera?.zoom)!)
+            
+            mapView.camera = camera!
+            updateMy(locationCoordinate: (myLatestLocation?.coordinate)!)
+        }
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -144,6 +136,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     }
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        authorizationStatus = status
         if status == .authorizedWhenInUse { // if location is enabled
             //TODO: If location is re-enabled the show position
             locationDisabledView.isHidden = true
@@ -291,11 +284,10 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
 //        }
         currentUserPath?.add(locationCoordinate)
         currentUserPolyline = getPolylineFor(path: currentUserPath)
-        multiPolyline?.drawPolylinesOnMap(mapView: mapView)
         
-        //Save my traversed path
-        UserDefaults.standard.setValue(currentUserPath?.encodedPath(), forKey: kMyEncodedPath)
-        UserDefaults.standard.synchronize()
+//        //Save my traversed path
+//        UserDefaults.standard.setValue(currentUserPath?.encodedPath(), forKey: kMyEncodedPath)
+//        UserDefaults.standard.synchronize()
         
         //Draw follow path
         resetRouteFor(marker: selectedMarker)
