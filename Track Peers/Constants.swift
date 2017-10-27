@@ -17,8 +17,6 @@ let isSimulator = true
 let isSimulator = false
 #endif
 
-let testEnvironmentURLs = ["a"]
-
 let screenWidth = UIScreen.main.bounds.width
 let screenHeight = UIScreen.main.bounds.height
 
@@ -29,6 +27,13 @@ let followUserColor = UIColor.green
 
 let kMyEncodedPath = "kMyEncodedPath"
 let kMyMultiPolyline = "kMyMultiPolyline"
+
+struct APIUrls {
+    static let testEnvironmentURLs = [kPostMyLocation, kGetFriendCoordinates]
+    
+    static let kPostMyLocation = "/location"
+    static let kGetFriendCoordinates = "/getFriendCoordinates"
+}
 
 struct Constants {
     

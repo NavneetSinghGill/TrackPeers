@@ -12,13 +12,27 @@ class TrackInterface: Interface {
     
     public func postMyLocationWith(request: TrackRequest, completion: @escaping CompletionHandler) {
         interfaceBlock = completion
-        RealAPI().getObject(request: request) { (success, response) in
+        getAPIinteractor(with: request.urlPath).postObject(request: request) { (success, response) in
             self.parseSuccessResponse(response:response as AnyObject)
+        }
+    }
+    
+    public func getCoordinatesOfFriendWith(request: TrackRequest, completion: @escaping CompletionHandler) {
+        interfaceBlock = completion
+        getAPIinteractor(with: request.urlPath).getObject(request: request) { (success, response) in
+            self.parseGetCoordinatesOfFriend(response:response as AnyObject)
         }
     }
 
     // MARK: Parse Response
 
+    func parseGetCoordinatesOfFriend(response: AnyObject?) {
+        if validateResponse(response: response!){
+            let success: Bool = true
+            interfaceBlock!(success, response!)
+        }
+    }
+    
     func parseSuccessResponse(response: AnyObject?) -> Void {
 //        if validateResponse(response: response!){
 //            var success: Bool = true

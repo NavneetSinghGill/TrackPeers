@@ -13,7 +13,7 @@ class Interface: NSObject {
     var interfaceBlock:CompletionHandler?
     
     func getAPIinteractor(with url:String) -> APIInteractor {
-        if testEnvironmentURLs.index(of: url) != nil {
+        if APIUrls.testEnvironmentURLs.index(of: url) != nil {
             return TestAPI()
         } else {
             return RealAPI()

@@ -15,6 +15,7 @@ class UserMarker: GMSMarker {
     var bearingAngle: CGFloat = 0
     var user: User?
     var followPolyline: GMSPolyline?
+    var traversedPolyline: GMSPolyline?
     
     func updateBearingWith(bearing: CGFloat) {
         bearingAngle = bearing
@@ -27,7 +28,9 @@ class UserMarker: GMSMarker {
     }
     
     init(user: User) {
+        super.init()
         self.user = user
+        self.user?.marker = self
     }
 
 }

@@ -11,10 +11,11 @@ import MapKit
 
 class User: NSObject {
 
+    var id: String?
     var latitude: Double?
     var longitude: Double?
     var lastLocation: CLLocationCoordinate2D?
-    var traversedCoordinates: [CLLocationCoordinate2D] = []
+    var marker: UserMarker?
     
     class func usersWithFakeLocations() -> [User] {
         var friends: [User] = []

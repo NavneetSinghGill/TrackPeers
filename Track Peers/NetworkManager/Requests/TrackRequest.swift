@@ -11,8 +11,17 @@ import UIKit
 class TrackRequest: Request {
     
     
-    func initPostMyLocationRequestWith(encodedPath:String) -> TrackRequest {
-        urlPath = "/location"
+    func initPostMyLocationRequestWith(latLong:String) -> TrackRequest {
+        parameters = ["latLong":latLong]
+        urlPath = APIUrls.kPostMyLocation
+        
+        return self
+    }
+    
+    func getCoordinatesOfFriend(with id:String) -> TrackRequest {
+        parameters = ["friendId":id]
+        urlPath = APIUrls.kGetFriendCoordinates
+        
         return self
     }
 

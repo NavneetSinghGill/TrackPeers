@@ -49,7 +49,7 @@ class MapViewController: UIViewController, GMSMapViewDelegate, CLLocationManager
 //    override func loadView() {
         locationManager.delegate = self
         locationManager.requestWhenInUseAuthorization()
-        locationManager.desiredAccuracy = 0.0001//0.002
+        locationManager.desiredAccuracy = 10
         locationManager.startUpdatingLocation()
         
         // Create a GMSCameraPosition that tells the map to display the
@@ -201,7 +201,7 @@ class MapViewController: UIViewController, GMSMapViewDelegate, CLLocationManager
         let destinationLocation: CLLocation = CLLocation(latitude: toLocation.latitude, longitude: toLocation.longitude)
     
         DispatchQueue.main.async {
-            self.fetchPolylineWithOrigin(origin: originLocation, destination: destinationLocation) { (toUserPolyline) in
+            Global.global.fetchPolylineWithOrigin(origin: originLocation, destination: destinationLocation) { (toUserPolyline) in
                 if toUserPolyline != nil {
                     DispatchQueue.main.async {
                         toUserPolyline?.map = self.mapView
@@ -210,52 +210,6 @@ class MapViewController: UIViewController, GMSMapViewDelegate, CLLocationManager
                 }
             }
         }
-    }
-    
-    func fetchPolylineWithOrigin(origin: CLLocation, destination: CLLocation, completionHandler: @escaping ((_ polyline: GMSPolyline?) -> Void)) {
-        let originString = "\(origin.coordinate.latitude),\(origin.coordinate.longitude)"
-        let destinationString = "\(destination.coordinate.latitude),\(destination.coordinate.longitude)"
-        let directionsAPI = "https://maps.googleapis.com/maps/api/directions/json?"
-        let directionsUrlString = "\(directionsAPI)&origin=\(originString)&destination=\(destinationString)&mode=driving"
-        let directionsUrl = URL(string: directionsUrlString)
-        
-        let request = URLRequest(url: directionsUrl!)
-        let config = URLSessionConfiguration.default
-        let session = URLSession(configuration: config)
-        
-        let task = session.dataTask(with: request) { (data, response, error) in
-            DispatchQueue.main.async {
-            do {
-                let json = try JSONSerialization.jsonObject(with: data!, options: JSONSerialization.ReadingOptions.allowFragments)
-                if (error != nil) {
-                    completionHandler(nil)
-                    return
-                }
-                
-                let routesArray: Array<AnyObject> = (json as! Dictionary<String, AnyObject>)["routes"] as! Array<AnyObject>
-                var polyline: GMSPolyline? = nil
-                
-                if routesArray.count > 0 {
-                    let routeDict: Dictionary<String,AnyObject> = routesArray[0] as! Dictionary<String, AnyObject>
-                    let routeOverviewPolyline: Dictionary<String, AnyObject> = routeDict["overview_polyline"] as! Dictionary<String, AnyObject>
-                    let points: String = routeOverviewPolyline["points"] as! String
-                    let path: GMSPath = GMSPath(fromEncodedPath: points)!
-                    polyline = GMSPolyline(path: path)
-                    polyline?.strokeWidth = 2
-                    polyline?.strokeColor = followUserColor
-                }
-                
-                DispatchQueue.main.async {
-                    completionHandler(polyline)
-                }
-            } catch _ {
-                
-                }
-                
-            }
-        }
-        
-        task.resume()
     }
     
     func followSelectedFriendsMarker() {
@@ -273,6 +227,10 @@ class MapViewController: UIViewController, GMSMapViewDelegate, CLLocationManager
     
     //Update location variables for current user and refresh follow path if following someone
     func updateMy(locationCoordinate: CLLocationCoordinate2D) {
+        
+        RequestManager().postMyLocation(latLong: "\(locationCoordinate.latitude),\(locationCoordinate.longitude)") { (success, response) in
+            
+        }
         
         //Update variables
         myPreviousCoordinate = myCurrentCoordinate
@@ -307,15 +265,31 @@ class MapViewController: UIViewController, GMSMapViewDelegate, CLLocationManager
         return polyline
     }
     
+    func getPolylineFor(coordinates: Array<CLLocationCoordinate2D>) -> GMSPolyline {
+        let path = GMSMutablePath()
+        for coordinate in coordinates {
+            path.add(coordinate)
+        }
+        
+        let polyline = GMSPolyline(path: path)
+        polyline.strokeWidth = 2
+        polyline.strokeColor = loggedInUserPathColor
+        polyline.map = mapView
+        
+        return polyline
+    }
+    
     func addMarkers(of friends:[User], shouldClearOldData: Bool) {
         if shouldClearOldData {
             remove(markers: self.friendsMarkers)
         }
-        
+        var i = 1
         for friend in friends {
             let image = UIImage(named: "marker")
             let markerImageView = UIImageView(image: image)
             markerImageView.bounds = CGRect(x: 0, y: 0, width: 30, height: 30)
+            friend.id = "\(i)"
+            
             let friendMarker: UserMarker = UserMarker(user: friend)
             friendMarker.iconView = markerImageView
             friendMarker.position = friend.lastLocation!
@@ -325,7 +299,11 @@ class MapViewController: UIViewController, GMSMapViewDelegate, CLLocationManager
             friendMarker.iconView?.bounds = CGRect(x: 0, y: (friendMarker.iconView?.bounds.size.height)!/2, width: (friendMarker.iconView?.bounds.size.width)!, height: (friendMarker.iconView?.bounds.size.height)!)
             
             friendsMarkers.append(friendMarker)
+            i = i + 1
+            
+            
         }
+        getLocationOf(friend: friends[0])
     }
     
     func remove(markers: [UserMarker]) {
@@ -338,6 +316,17 @@ class MapViewController: UIViewController, GMSMapViewDelegate, CLLocationManager
         }
     }
     
+    //MARK: - Private methods
+    
+    func getLocationOf(friend: User) {
+        RequestManager().getCoordinatesOfFriend(of: friend.id!) { (success, response) in
+            if (response as! Dictionary<String,AnyObject>)["latLongs"] != nil {
+                let coordinates = Global.global.getCLLocationCoordinate2DArray(forLatLongStringArray: (response as! Dictionary<String,AnyObject>)["latLongs"] as! Array<String>)
+                friend.marker?.traversedPolyline = self.getPolylineFor(coordinates: coordinates)
+                friend.marker?.traversedPolyline?.map = self.mapView
+            }
+        }
+    }
     
 }
 
